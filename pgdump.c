@@ -490,22 +490,26 @@ static void pdump_inspect_page_dta(DB *dbp, PAGE *h)
                 raise(SIGINT);
                 break;
             }
+            // if (B_RISSET(bk) || B_PISSET(bk)) {
+            //  format = "\n%3d. ";
+            //  value = 0;
+            //} else if (B_DISSET(bk)) {
+            //  format = "\n%3d. ";
+            //  value = 1;
+            //} else if (value && (len == 8 || B_TYPE(bk) == B_OVERFLOW)) {
+            //  format = " -> ";
+            //} else {
+            //  format = "\n%3d. ";
+            //}
+            // printf(format, i);
+            printf("\n%d [@%d]:", i, P_INP(dbp, h)[i]);
+            pdump_inspect_bk(bk);
+            value = !value;
         }
-        // if (B_RISSET(bk) || B_PISSET(bk)) {
-        //  format = "\n%3d. ";
-        //  value = 0;
-        //} else if (B_DISSET(bk)) {
-        //  format = "\n%3d. ";
-        //  value = 1;
-        //} else if (value && (len == 8 || B_TYPE(bk) == B_OVERFLOW)) {
-        //  format = " -> ";
-        //} else {
-        //  format = "\n%3d. ";
-        //}
-        // printf(format, i);
-        printf("\n%d [@%d]:", i, P_INP(dbp, h)[i]);
-        pdump_inspect_bk(bk);
-        value = !value;
+        else if (B_TYPE(bk) == B_OVERFLOW) {
+            BOVERFLOW *bo = GET_BOVERFLOW(dbp, h, i);
+            printf(" overflow %u next %u\n", bo->tlen, bo->pgno);
+        }
     }
 }
 
