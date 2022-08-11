@@ -36,7 +36,7 @@ static void print_hex(uint8_t * b, unsigned l)
 	static char map[] = "0123456789abcdef";
 	int i;
 	int print_max = 16;
-	if (full || l < print_max) {
+	if (full || l <= (print_max * 2)) {
 		for (i = 0; i < l; ++i) {
 			logmsg(LOGMSG_USER, "%c%c", map[b[i] >> 4], map[b[i] & 0x0f]);
 		}
@@ -44,7 +44,7 @@ static void print_hex(uint8_t * b, unsigned l)
 		for (i = 0; i < print_max; ++i) {
 			logmsg(LOGMSG_USER, "%c%c", map[b[i] >> 4], map[b[i] & 0x0f]);
 		}
-		logmsg(LOGMSG_USER, "...");
+		logmsg(LOGMSG_USER, "..");
 		for (i = l - print_max; i < l; ++i) {
 			logmsg(LOGMSG_USER, "%c%c", map[b[i] >> 4], map[b[i] & 0x0f]);
 		}
