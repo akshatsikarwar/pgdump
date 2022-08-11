@@ -31,8 +31,7 @@ struct pfx_type_t {
 
 int full;
 
-static void
-print_hex(uint8_t * b, unsigned l, int newline)
+static void print_hex(uint8_t * b, unsigned l)
 {
 	static char map[] = "0123456789abcdef";
 	int i;
@@ -50,7 +49,6 @@ print_hex(uint8_t * b, unsigned l, int newline)
 			logmsg(LOGMSG_USER, "%c%c", map[b[i] >> 4], map[b[i] & 0x0f]);
 		}
 	}
-	if (newline) logmsg(LOGMSG_USER, "\n");
 }
 
 void
@@ -72,7 +70,7 @@ inspect_bk(BKEYDATA *bk)
 			logmsg(LOGMSG_USER, "not printing - too big");
 			break;
 		}
-		print_hex(bk->data, len, 0);
+		print_hex(bk->data, len);
 		logmsg(LOGMSG_USER, " [%s%s%s ]", B_PISSET(bk) ? "P" : " ",
 		    B_RISSET(bk) ? "R" : " ", B_DISSET(bk) ? "X" : " ");
 		break;
@@ -110,15 +108,15 @@ inspect_page_hdr(DB *dbp, PAGE *h)
 
 		logmsg(LOGMSG_USER, "key-compression:yes pfx:0x");
 		if (pfx->nrle) {
-			print_hex(pfx->rle, pfx->nrle, 0);
+			print_hex(pfx->rle, pfx->nrle);
 			logmsg(LOGMSG_USER, " (uncompressed:0x");
 		}
-		print_hex(pfx->pfx, pfx->npfx, 0);
+		print_hex(pfx->pfx, pfx->npfx);
 		if (pfx->nrle)
 			logmsg(LOGMSG_USER, ")");
 		if (pfx->nsfx) {
 			logmsg(LOGMSG_USER, " sfx:0x");
-			print_hex(pfx->sfx, pfx->nsfx, 0);
+			print_hex(pfx->sfx, pfx->nsfx);
 		}
 		logmsg(LOGMSG_USER, "\n");
 	} else {
@@ -485,25 +483,6 @@ find_pfx(DB *dbp, PAGE *h, pfx_t * pfx)
 		if (compressComdb2RLE(&rle) == 0)
 			pfx->nrle = rle.outsz;
 	}
-#if 0
-	printf("first: 0x");
-	print_hex(first->data, first->len, 1);
-	printf(" last: 0x");
-	print_hex(last->data, last->len, 1);
-	printf("  pfx: 0x");
-	print_hex(pfx->pfx, pfx->npfx, 0);
-	if (pfx->nsfx) {
-		printf("%.*s", 2 * (first->len - pfx->npfx - pfx->nsfx),
-		    "----------------");
-		print_hex(pfx->sfx, pfx->nsfx, 0);
-	}
-	if (pfx->nrle) {
-		printf(" -> 0x");
-		print_hex(pfx->rle, pfx->nrle, 0);
-	}
-	puts("");
-#endif
-
 	rc = 0;
 out:	return rc;
 }

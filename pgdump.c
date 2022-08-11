@@ -219,8 +219,10 @@ static int decrypt_page(DB *dbp, PAGE *p)
     __db_hmac(mac_key, (uint8_t *)p, chksum_pgsize(dbp, p), new);
     if (memcmp(old, new, DB_MAC_KEY) != 0) {
         fprintf(stderr, "bad mac\n");
-        print_hex(old, DB_MAC_KEY, 1);
-        print_hex(new, DB_MAC_KEY, 1);
+        print_hex(old, DB_MAC_KEY);
+        puts("");
+        print_hex(new, DB_MAC_KEY);
+        puts("");
         return -1;
     } else {
         printf("good mac\n");
@@ -364,8 +366,8 @@ static void do_meta(DB *dbp, PAGE *p)
     printf("PGSIZE: %" PRIu32 " OFFSET BIAS:%d\n", dbp->pgsize,
            dbp->offset_bias);
     printf("FILEID: ");
-    print_hex(meta->uid, DB_FILE_ID_LEN, 1);
-    printf("PGNO:%u\n", meta->pgno);
+    print_hex(meta->uid, DB_FILE_ID_LEN);
+    printf("\nPGNO:%u\n", meta->pgno);
 
     switch (TYPE(p)) {
     case P_HASHMETA: printf("LAST_PAGE:%u\n", meta->last_pgno); break;
@@ -453,9 +455,9 @@ static void pdump_inspect_bk(BKEYDATA *bk)
     switch (B_TYPE(bk)) {
     case B_KEYDATA:
         ASSIGN_ALIGN(db_indx_t, len, bk->len);
-        print_hex(bk->data, len, 0);
-        printf(" [%s%s%s ]", B_PISSET(bk) ? "P" : " ", B_RISSET(bk) ? "R" : " ",
+        printf("[%s%s%s ] ", B_PISSET(bk) ? "P" : " ", B_RISSET(bk) ? "R" : " ",
                B_DISSET(bk) ? "X" : " ");
+        print_hex(bk->data, len);
         break;
     case B_OVERFLOW:
         bo = (BOVERFLOW *)bk;
@@ -474,12 +476,13 @@ static void pdump_inspect_bk(BKEYDATA *bk)
 
 static void pdump_inspect_page_dta(DB *dbp, PAGE *h)
 {
-    printf("values:");
+    printf("key-values:");
     int value = 0;
     int i;
     char *format;
     db_indx_t len = 0;
     for (i = 0; i < NUM_ENT(h); ++i) {
+        puts("");
         BKEYDATA *bk = GET_BKEYDATA(dbp, h, i);
         if (B_TYPE(bk) == B_KEYDATA) {
             uint8_t *a, *b;
@@ -491,26 +494,13 @@ static void pdump_inspect_page_dta(DB *dbp, PAGE *h)
                 raise(SIGINT);
                 break;
             }
-            // if (B_RISSET(bk) || B_PISSET(bk)) {
-            //  format = "\n%3d. ";
-            //  value = 0;
-            //} else if (B_DISSET(bk)) {
-            //  format = "\n%3d. ";
-            //  value = 1;
-            //} else if (value && (len == 8 || B_TYPE(bk) == B_OVERFLOW)) {
-            //  format = " -> ";
-            //} else {
-            //  format = "\n%3d. ";
-            //}
-            // printf(format, i);
-            printf("\n%d [@%d]:", i, P_INP(dbp, h)[i]);
+            printf("%4d [@%5d]: %s len:%-6d ", i, P_INP(dbp, h)[i], value ? "value" : "key  ", bk->len);
             pdump_inspect_bk(bk);
-            value = !value;
-        }
-        else if (B_TYPE(bk) == B_OVERFLOW) {
+        } else if (B_TYPE(bk) == B_OVERFLOW) {
             BOVERFLOW *bo = GET_BOVERFLOW(dbp, h, i);
-            printf(" overflow %u next %u\n", bo->tlen, bo->pgno);
+            printf("%4d [@%5d]: value len:%-6d [  %cO] page:%u", i, P_INP(dbp, h)[i], bo->tlen, B_DISSET(bo) ? 'X' : ' ', bo->pgno);
         }
+        value = !value;
     }
 }
 
