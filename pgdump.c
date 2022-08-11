@@ -20,6 +20,7 @@
 
 #include <bt_prefix.c>
 
+extern int full;
 int get_bh_gen;
 static char *passwd = NULL;
 
@@ -556,12 +557,13 @@ static void usage()
          "Usage: pgdump [options] <db_file> [pgno]\n\n"
          "Options:\n"
          "  -c 0|1      - Override chksum flag obtained from meta-page\n"
-         "  -h          - Print this usage message\n"
-         "  -P password - Set password\n"
-         "  -p pagesize - Override pagesize obtained from meta-page\n"
-         "  -s 0|1      - Override swap flag obtained from meta-page\n"
-         "  -m          - Don't process meta page\n"
          "  -f          - Find new pfx and show resulting page()\n"
+         "  -F          - Pring complete payloads\n"
+         "  -h          - Print this usage message\n"
+         "  -m          - Don't process meta page\n"
+         "  -p pagesize - Override pagesize obtained from meta-page\n"
+         "  -P password - Set password\n"
+         "  -s 0|1      - Override swap flag obtained from meta-page\n"
          "  -t 0|1      - Btree type: Index (0) or Data (1) btree\n"
         );
 }
@@ -571,7 +573,7 @@ int main(int argc, char *argv[])
     crc32c_init(0);
     int arg, pgsize, swap, chksum, skipmeta, findpfx, data;
     pgsize = swap = chksum = skipmeta = findpfx = data = 0;
-    while ((arg = getopt(argc, argv, "c:s:P:p:mft:h")) != -1) {
+    while ((arg = getopt(argc, argv, "c:s:P:p:mft:hF")) != -1) {
         switch (arg) {
         case 'c': chksum = atoi(optarg) + 1; break;
         case 'P': passwd = strdup(optarg); break;
@@ -580,6 +582,7 @@ int main(int argc, char *argv[])
         case 'm': skipmeta = 1; break;
         case 'f': findpfx = 1; break;
         case 't': data = atoi(optarg) + 1; break;
+        case 'F': full = 1; break;
         default: usage(); return (arg == 'h') ? EXIT_SUCCESS : EXIT_FAILURE;
         }
     }

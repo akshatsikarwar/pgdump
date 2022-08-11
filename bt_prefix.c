@@ -29,18 +29,28 @@ struct pfx_type_t {
 	uint8_t pfx[1];
 };
 
+int full;
 
 static void
 print_hex(uint8_t * b, unsigned l, int newline)
 {
 	static char map[] = "0123456789abcdef";
 	int i;
-
-	for (i = 0; i < l; ++i) {
-		logmsg(LOGMSG_USER, "%c%c", map[b[i] >> 4], map[b[i] & 0x0f]);
+	int print_max = 16;
+	if (full || l < print_max) {
+		for (i = 0; i < l; ++i) {
+			logmsg(LOGMSG_USER, "%c%c", map[b[i] >> 4], map[b[i] & 0x0f]);
+		}
+	} else {
+		for (i = 0; i < print_max; ++i) {
+			logmsg(LOGMSG_USER, "%c%c", map[b[i] >> 4], map[b[i] & 0x0f]);
+		}
+		logmsg(LOGMSG_USER, "...");
+		for (i = l - print_max; i < l; ++i) {
+			logmsg(LOGMSG_USER, "%c%c", map[b[i] >> 4], map[b[i] & 0x0f]);
+		}
 	}
-	if (newline)
-		logmsg(LOGMSG_USER, "\n");
+	if (newline) logmsg(LOGMSG_USER, "\n");
 }
 
 void
