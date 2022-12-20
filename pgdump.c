@@ -21,6 +21,7 @@
 #include <bt_prefix.c>
 
 extern int full;
+int xxd;
 int get_bh_gen;
 static char *passwd = NULL;
 
@@ -458,6 +459,7 @@ static void pdump_inspect_bk(BKEYDATA *bk)
         printf("[%s%s%s ] ", B_PISSET(bk) ? "P" : " ", B_RISSET(bk) ? "R" : " ",
                B_DISSET(bk) ? "X" : " ");
         print_hex(bk->data, len);
+        if (xxd) print_xxd(bk->data, len);
         break;
     case B_OVERFLOW:
         bo = (BOVERFLOW *)bk;
@@ -555,6 +557,7 @@ static void usage()
          "  -P password - Set password\n"
          "  -s 0|1      - Override swap flag obtained from meta-page\n"
          "  -t 0|1      - Btree type: Index (0) or Data (1) btree\n"
+         "  -x          - xxd keys and values\n"
         );
 }
 
@@ -563,7 +566,7 @@ int main(int argc, char *argv[])
     crc32c_init(0);
     int arg, pgsize, swap, chksum, skipmeta, findpfx, data;
     pgsize = swap = chksum = skipmeta = findpfx = data = 0;
-    while ((arg = getopt(argc, argv, "c:s:P:p:mft:hF")) != -1) {
+    while ((arg = getopt(argc, argv, "c:s:P:p:mft:hFx")) != -1) {
         switch (arg) {
         case 'c': chksum = atoi(optarg) + 1; break;
         case 'P': passwd = strdup(optarg); break;
@@ -573,6 +576,7 @@ int main(int argc, char *argv[])
         case 'f': findpfx = 1; break;
         case 't': data = atoi(optarg) + 1; break;
         case 'F': full = 1; break;
+        case 'x': xxd = 1; break;
         default: usage(); return (arg == 'h') ? EXIT_SUCCESS : EXIT_FAILURE;
         }
     }

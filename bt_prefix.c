@@ -51,6 +51,27 @@ static void print_hex(uint8_t * b, unsigned l)
 	}
 }
 
+static void print_xxd(uint8_t * b, unsigned l)
+{
+	uint8_t *start = b;
+	uint8_t *end = b + l;
+    puts("");
+	while (start < end) {
+		char c = *start;
+        if (c == '\n' || c == '\r') {
+            puts("");
+        } else if (c == '\t') {
+            putchar('\t');
+        } else if (isprint(c)) {
+            putchar(c);
+        } else {
+            putchar('.');
+        }
+		++start;
+	}
+    puts("");
+}
+
 void
 inspect_bk(BKEYDATA *bk)
 {
