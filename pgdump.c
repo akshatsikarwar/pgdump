@@ -509,7 +509,7 @@ static void dump_leaf_page(DB *dbp, PAGE *h)
             pdump_inspect_bk(bk);
         } else if (B_TYPE(bk) == B_OVERFLOW) {
             BOVERFLOW *bo = GET_BOVERFLOW(dbp, h, i);
-            printf("%4d [@%5d]: value len:%-6d [  %cO] page:%u", i, P_INP(dbp, h)[i], bo->tlen, B_DISSET(bo) ? 'X' : ' ', bo->pgno);
+            printf("%4d [@%5d]: value len:%-6d [  %cO] pgno:%u", i, P_INP(dbp, h)[i], bo->tlen, B_DISSET(bo) ? 'X' : ' ', bo->pgno);
         }
         value = !value;
     }
