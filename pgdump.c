@@ -353,7 +353,7 @@ static void __db_hmac(u_int8_t *k, u_int8_t *data, size_t data_len, u_int8_t *ma
 }
 #endif
 
-static void do_meta(DB *dbp, PAGE *p)
+static void dump_meta_pg(DB *dbp, PAGE *p)
 {
     DBMETA *meta = (DBMETA *)p;
     BTMETA *bm;
@@ -476,8 +476,17 @@ static void pdump_inspect_bk(BKEYDATA *bk)
     }
 }
 
-static void pdump_inspect_page_dta(DB *dbp, PAGE *h)
+static void dump_leaf_page(DB *dbp, PAGE *h)
 {
+    DB db;
+    if (dbp->fname == NULL) { // got a dummy dbp
+        db = *dbp;
+        dbp = &db;
+        // all new pages should have checksums
+        F_SET(dbp, DB_AM_CHKSUM);
+    }
+    inspect_page_hdr(dbp, h);
+
     printf("key-values:");
     int value = 0;
     int i;
@@ -504,9 +513,11 @@ static void pdump_inspect_page_dta(DB *dbp, PAGE *h)
         }
         value = !value;
     }
+
+    printf("\n");
 }
 
-static void pdump_inspect_page(DB *dbp, PAGE *h)
+static void dump_overflow_page(DB *dbp, PAGE *h)
 {
     DB db;
     if (dbp->fname == NULL) { // got a dummy dbp
@@ -516,9 +527,15 @@ static void pdump_inspect_page(DB *dbp, PAGE *h)
         F_SET(dbp, DB_AM_CHKSUM);
     }
     inspect_page_hdr(dbp, h);
-    if (ISLEAF(h)) {
-        pdump_inspect_page_dta(dbp, h);
+    if (NUM_ENT(h) != 1) {
+        fprintf(stderr, "overflow page entries:%d\n", NUM_ENT(h));
+        abort();
     }
+    uint8_t *src = (uint8_t *)h + P_OVERHEAD(dbp);
+    db_indx_t bytes = OV_LEN(h);
+    printf("%4d [@%5d]: %s len:%-6d ", 0, P_OVERHEAD(dbp), "value", bytes);
+    print_hex(src, bytes);
+    if (xxd) print_xxd(src, bytes);
     printf("\n");
 }
 
@@ -530,8 +547,9 @@ static void do_page_int(DB *dbp, PAGE *p)
     switch (type) {
     case P_HASHMETA:
     case P_BTREEMETA:
-    case P_QAMMETA: do_meta(dbp, p); break;
-    case P_LBTREE: pdump_inspect_page(dbp, p); break;
+    case P_QAMMETA: dump_meta_pg(dbp, p); break;
+    case P_LBTREE: dump_leaf_page(dbp, p); break;
+    case P_OVERFLOW: dump_overflow_page(dbp, p); break;
     case P_IBTREE: inspect_internal_page(dbp, p); break;
     case P_INVALID: inspect_page_hdr(dbp, p); break;
     }
